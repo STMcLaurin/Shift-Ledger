@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ShiftLedger — Temp Staffing ATS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-mark">SL</div>
+    <div>
+      <div class="brand-name">ShiftLedger</div>
+      <div class="brand-tag">Temp Staffing Desk</div>
+    </div>
+  </div>
+  <nav class="topnav" id="topnav">
+    <button class="nav-link" data-nav="landing">Home</button>
+    <button class="nav-link hidden" id="nav-employer" data-nav="employer">Employer Portal</button>
+    <button class="nav-link hidden" id="nav-applicant" data-nav="applicant">Contractor Portal</button>
+    <button class="btn btn-ghost btn-sm hidden" id="itSupportBtn" onclick="window.open(IT_TICKET_SYSTEM_URL, '_blank')">IT Support</button>
+    <span class="session-chip hidden" id="sessionChip"></span>
+    <div class="bell-wrap hidden" id="bellWrap">
+      <button class="bell-btn" id="bellBtn">&#128276;<span class="dot hidden" id="bellDot"></span></button>
+      <div class="bell-panel" id="bellPanel">
+        <h4>Notifications</h4>
+        <div id="bellList"></div>
+      </div>
+    </div>
+    <button class="btn btn-ghost btn-sm hidden" id="logoutBtn">Log out</button>
+    <button class="btn btn-primary btn-sm" id="loginOpenBtn">Log in / Register</button>
+  </nav>
+</header>
+
+<main>
+
+  <!-- ===================== LANDING ===================== -->
+  <section id="view-landing">
+    <div class="hero">
+      <div class="hero-eyebrow">Work Order No. 001 — Staffing Desk</div>
+      <h1>Every shift, every applicant, one ledger.</h1>
+      <p>ShiftLedger runs the paperwork between employers who need temporary help and the contractors ready to fill it — job postings, applications, and placement status, all in one desk.</p>
+      <div class="portal-picks">
+        <div class="portal-card">
+          <span class="stamp">For Employers</span>
+          <h3>Post a job. Review the roster.</h3>
+          <p>List open temp roles, watch applicants move through your pipeline, and mark placements filled.</p>
+          <button class="btn btn-primary" onclick="openAuth('employer')">Enter Employer Portal</button>
+        </div>
+        <div class="portal-card">
+          <span class="stamp">For Contractors &amp; Employees</span>
+          <h3>Find the shift. Track the status.</h3>
+          <p>Browse open work orders, apply in a click, and follow every application from submitted to placed.</p>
+          <button class="btn btn-primary" onclick="openAuth('applicant')">Enter Contractor Portal</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="stat-strip" id="landingStats"></div>
+
+    <div class="panel">
+      <h2>Open Work Orders</h2>
+      <div class="sub">A live look at currently open temp positions across all employers.</div>
+      <div id="landingJobs"></div>
+    </div>
+  </section>
+
+  <!-- ===================== EMPLOYER PORTAL ===================== -->
+  <section id="view-employer" class="hidden">
+    <div class="tabs">
+      <button class="tab-btn active" data-etab="dashboard">Dashboard</button>
+      <button class="tab-btn" data-etab="post">Post a Job</button>
+      <button class="tab-btn" data-etab="jobs">My Job Postings</button>
+      <button class="tab-btn" data-etab="pipeline">Applicant Pipeline</button>
+      <button class="tab-btn" data-etab="schedule">Schedule</button>
+      <button class="tab-btn" data-etab="timesheets">Timesheets &amp; Payroll</button>
+      <button class="tab-btn" data-etab="analytics">Analytics</button>
+    </div>
+
+    <div id="etab-dashboard">
+      <div class="stat-strip" id="employerStats"></div>
+      <div class="panel" id="liveChatPanel">
+        <h2>Live Chat Requests</h2>
+        <div class="sub">Contractors who asked to speak with you directly after the assistant couldn't help.</div>
+        <div id="liveChatRequestsList"></div>
+      </div>
+      <div class="panel">
+        <h2>Recent Activity</h2>
+        <div class="sub">Latest applications across your postings.</div>
+        <div id="employerRecent"></div>
+      </div>
+    </div>
+
+    <div id="etab-post" class="hidden">
+      <div class="panel">
+        <h2>Post a New Work Order</h2>
+        <div class="sub">This goes live immediately in the Contractor Portal.</div>
+        <form id="jobForm">
+          <div class="field-row">
+            <div class="field"><label>Job Title</label><input type="text" id="jTitle" required placeholder="e.g. Warehouse Associate — Night Shift"></div>
+            <div class="field"><label>Location</label><input type="text" id="jLocation" required placeholder="e.g. Greenville, NC"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Pay Rate (to Contractor)</label><input type="text" id="jPay" required placeholder="e.g. $19/hr"></div>
+            <div class="field"><label>Bill Rate (to Employer Client)</label><input type="text" id="jBillRate" placeholder="e.g. $27/hr — leave blank if same as pay rate"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Engagement Type</label>
+              <select id="jType"><option>Temporary</option><option>Contract</option><option>Temp-to-Hire</option><option>1099 Independent Contractor</option></select>
+            </div>
+          </div>
+          <div class="field"><label>Description &amp; Requirements</label><textarea id="jDesc" required placeholder="Duties, shift hours, certifications required..."></textarea></div>
+          <div class="field"><label>Tags (comma separated)</label><input type="text" id="jTags" placeholder="e.g. forklift, overnight, lifting 50lbs"></div>
+          <button class="btn btn-primary" type="submit">Post Job</button>
+        </form>
+      </div>
+    </div>
+
+    <div id="etab-jobs" class="hidden">
+      <div class="panel">
+        <h2>My Job Postings</h2>
+        <div class="sub">Close a posting once it's filled.</div>
+        <div id="employerJobList"></div>
+      </div>
+    </div>
+
+    <div id="etab-pipeline" class="hidden">
+      <div class="panel">
+        <h2>Applicant Pipeline</h2>
+        <div class="sub">Select a posting to see its applicant pipeline. Move applicants forward using the status dropdown on each card.</div>
+        <div class="field" style="max-width:420px;"><select id="pipelineJobSelect"></select></div>
+        <div class="pipeline" id="pipelineBoard"></div>
+      </div>
+    </div>
+
+    <div id="etab-schedule" class="hidden">
+      <div class="panel">
+        <h2>Assign a Shift</h2>
+        <div class="sub">Schedule a specific date/time for a placed contractor.</div>
+        <form id="shiftForm">
+          <div class="field"><label>Placement</label><select id="shiftAppSelect"></select></div>
+          <div class="field-row">
+            <div class="field"><label>Date</label><input type="date" id="shiftDate" required></div>
+            <div class="field"><label>Start Time</label><input type="time" id="shiftStart" required></div>
+          </div>
+          <div class="field"><label>End Time</label><input type="time" id="shiftEnd" required></div>
+          <button class="btn btn-primary" type="submit">Assign Shift</button>
+        </form>
+      </div>
+      <div class="panel">
+        <h2>Upcoming &amp; Past Shifts</h2>
+        <div class="sub">Contractor swap/cancel requests need your approval below.</div>
+        <div id="employerShiftList"></div>
+      </div>
+    </div>
+
+    <div id="etab-timesheets" class="hidden">
+      <div class="panel">
+        <h2>Timesheets Awaiting Approval</h2>
+        <div class="sub">Approve completed shifts to release them to payroll.</div>
+        <div id="pendingTimesheets"></div>
+      </div>
+      <div class="panel">
+        <h2>Payroll — Approved &amp; Paid</h2>
+        <div class="sub">Mark approved shifts as paid once processed.</div>
+        <div id="payrollTable"></div>
+      </div>
+      <div class="panel">
+        <h2>Invoicing</h2>
+        <div class="sub">Generate a client invoice from paid shifts at your posted bill rate (not yet invoiced).</div>
+        <button class="btn btn-primary btn-sm" onclick="generateInvoice()">Generate Invoice from Paid, Uninvoiced Shifts</button>
+        <div id="invoiceOutput"></div>
+      </div>
+    </div>
+
+    <div id="etab-analytics" class="hidden">
+      <div class="panel">
+        <h2>Staffing Analytics</h2>
+        <div class="sub">Fill rate, time-to-place, and revenue across your postings.</div>
+      </div>
+      <div class="stat-strip" id="analyticsStats"></div>
+      <div class="panel">
+        <h2>Margin by Job Posting</h2>
+        <div class="sub">Bill rate vs. pay rate per posting — your markup per hour worked.</div>
+        <div id="marginTable"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== APPLICANT / CONTRACTOR PORTAL ===================== -->
+  <section id="view-applicant" class="hidden">
+    <div class="tabs">
+      <button class="tab-btn active" data-atab="browse">Browse Jobs</button>
+      <button class="tab-btn" data-atab="applications">My Applications</button>
+      <button class="tab-btn" data-atab="timeclock">Time Clock</button>
+      <button class="tab-btn" data-atab="documents">Documents</button>
+      <button class="tab-btn" data-atab="profile">My Profile</button>
+    </div>
+
+    <div id="atab-browse">
+      <div class="panel">
+        <h2>Open Work Orders</h2>
+        <div class="sub">Apply to any open position — your application goes straight to the employer's pipeline.</div>
+        <div class="field" style="max-width:340px;"><input type="text" id="jobSearch" placeholder="Filter by title, tag, or location..."></div>
+        <div id="applicantJobList"></div>
+      </div>
+    </div>
+
+    <div id="atab-applications" class="hidden">
+      <div class="panel">
+        <h2>My Applications</h2>
+        <div class="sub">Track every application from submitted to placed.</div>
+        <div id="myApplications"></div>
+      </div>
+    </div>
+
+    <div id="atab-timeclock" class="hidden">
+      <div class="panel">
+        <h2>Time Clock</h2>
+        <div class="sub">Clock in and out of your active placements. Employers approve completed shifts before payroll.</div>
+        <div id="timeclockList"></div>
+      </div>
+      <div class="panel">
+        <h2>My Shift History</h2>
+        <div id="myShiftHistory"></div>
+      </div>
+    </div>
+
+    <div id="atab-documents" class="hidden">
+      <div class="panel">
+        <h2>My Documents</h2>
+        <div class="sub">Upload a resume, ID, certifications, or tax forms (W-9/W-4). Employers you've applied to can view these.</div>
+        <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+          Click to choose a file, or drag one here.<br><span style="font-size:11px;">PDF, image, or doc — stored securely in your account.</span>
+        </div>
+        <input type="file" id="fileInput" class="hidden">
+        <div style="margin-top:18px;" id="myDocuments"></div>
+      </div>
+    </div>
+
+    <div id="atab-profile" class="hidden">
+      <div class="panel">
+        <h2>My Profile</h2>
+        <div class="sub">Employers see this alongside your applications.</div>
+        <form id="profileForm">
+          <div class="field-row">
+            <div class="field"><label>Full Name</label><input type="text" id="pName" required></div>
+            <div class="field"><label>Phone</label><input type="text" id="pPhone" placeholder="(xxx) xxx-xxxx"></div>
+          </div>
+          <div class="field"><label>Skills / Certifications (comma separated)</label><input type="text" id="pSkills" placeholder="e.g. forklift, CNA, CDL-A"></div>
+          <div class="field"><label>Short Bio / Availability</label><textarea id="pBio" placeholder="Availability, experience summary..."></textarea></div>
+          <button class="btn btn-primary" type="submit">Save Profile</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ===================== AUTH MODAL ===================== -->
+<div class="modal-backdrop" id="authModal">
+  <div class="modal">
+    <h2 id="authTitle">Employer Portal</h2>
+    <div class="sub">Log in with an existing account, or register a new one.</div>
+    <div class="modal-tabs">
+      <button id="modeLogin" class="active" onclick="setAuthMode('login')">Log In</button>
+      <button id="modeRegister" onclick="setAuthMode('register')">Register</button>
+    </div>
+    <form id="authForm">
+      <div class="field" id="regNameField"><label>Full Name / Company Name</label><input type="text" id="authName"></div>
+      <div class="field"><label>Email</label><input type="email" id="authEmail" required></div>
+      <div class="field"><label>Password</label><input type="password" id="authPassword" required></div>
+      <button class="btn btn-primary" type="submit" style="width:100%;">Continue</button>
+    </form>
+    <div class="sub" style="margin-top:14px;">Demo accounts — Employer: <b>employer@demo.com</b> / Contractor: <b>contractor@demo.com</b> (password: <b>demo</b>)</div>
+    <button class="btn btn-ghost btn-sm" style="margin-top:12px; width:100%;" onclick="closeAuth()">Cancel</button>
+  </div>
+</div>
+
+<!-- ===================== CHAT MODAL ===================== -->
+<div class="modal-backdrop chat-modal" id="chatModal">
+  <div class="modal">
+    <div class="chat-header">
+      <h2 id="chatTitle">Message Thread</h2>
+      <div class="sub" id="chatSub"></div>
+    </div>
+    <div class="chat-log" id="chatLog"></div>
+    <div class="quick-reply-row hidden" id="quickReplyRow">
+      <button class="quick-btn" onclick="toggleScheduleInput()">📅 Schedule Appointment</button>
+      <button class="quick-btn" onclick="sendQuickReply('payroll')">💰 Payroll Question</button>
+      <button class="quick-btn" onclick="sendQuickReply('jobs')">📋 New Job Opportunities</button>
+      <button class="quick-btn" onclick="sendQuickReply('resume')">📝 Resume &amp; Cover Letter</button>
+      <button class="quick-btn" onclick="sendQuickReply('other')">Other</button>
+    </div>
+    <div class="link-input-row" id="linkInputRow">
+      <input type="text" id="scheduleLinkInput" placeholder="Paste your scheduling link (Zoom, Calendly, etc.)">
+      <button class="btn btn-primary btn-sm" onclick="sendScheduleLink()">Send</button>
+    </div>
+    <div class="chat-input-row">
+      <input type="text" id="chatInput" placeholder="Type a message...">
+      <button class="btn btn-primary btn-sm" id="chatSendBtn">Send</button>
+    </div>
+    <div style="padding:0 16px 14px;"><button class="btn btn-ghost btn-sm" style="width:100%;" onclick="closeChat()">Close</button></div>
+  </div>
+</div>
+
+<!-- ===================== BOT WIDGET (Contractor Portal) ===================== -->
+<button class="bot-fab hidden" id="botFab" onclick="openBot()">💬 Assistant</button>
+<div class="modal-backdrop bot-modal" id="botModal">
+  <div class="modal">
+    <div class="chat-header">
+      <h2>ShiftLedger Assistant</h2>
+      <div class="sub">Ask about your applications, shifts, or pay — or connect with your employer.</div>
+    </div>
+    <div class="bot-log" id="botLog"></div>
+    <div style="padding:0 16px 14px;"><button class="btn btn-ghost btn-sm" style="width:100%;" onclick="closeBot()">Close</button></div>
+  </div>
+</div>
+
+<!-- ===================== BOT WIDGET (Employer Portal) ===================== -->
+<button class="bot-fab employer-fab hidden" id="employerBotFab" onclick="openEmployerBot()">💬 Assistant</button>
+<div class="modal-backdrop bot-modal" id="employerBotModal">
+  <div class="modal">
+    <div class="chat-header">
+      <h2>ShiftLedger Assistant</h2>
+      <div class="sub">Ask about your postings, pipeline, payroll, or how the platform works.</div>
+    </div>
+    <div class="bot-log" id="employerBotLog"></div>
+    <div style="padding:0 16px 14px;"><button class="btn btn-ghost btn-sm" style="width:100%;" onclick="closeEmployerBot()">Close</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="script.js"></script>
+</body>
+</html>
